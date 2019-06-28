@@ -6,7 +6,7 @@ Repository associated with the publication:
 
 Corresponding author: Elena Papaleo, elenap@cancer.dk
 
-First Author: Thilde Bagger Terkelsen, thilde@cancer.dk thildebate@gmail.com
+First author: Thilde Bagger Terkelsen, thilde@cancer.dk thildebate@gmail.com
 
 R-scripts were created by: Thilde Bagger Terkelsen, thilde@cancer.dk thildebate@gmail.com
 
