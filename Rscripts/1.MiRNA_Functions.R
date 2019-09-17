@@ -29,6 +29,7 @@ library(dendextend)
 library(factoextra)
 library(ggplot2)
 library(glmnet)
+library(gridExtra)
 library(heatmap.plus)
 library(pamr)
 library(RColorBrewer)
@@ -38,6 +39,7 @@ library(rms)
 library(scales)
 library(varSelRF)
 library(VennDiagram)
+library(viridis)
 library(WGCNA)
 
 
@@ -360,7 +362,8 @@ plot_upsetR <- function(list.of.sets, my.intersection, my.name, my.cols, my.plot
     pdf(paste0(my.name, ".pdf"), height = 6, width = 10)
     my.combination <- my.cols
     names(my.combination) <- my.intersection
-    upset(full.set, sets=colnames(full.set)[2:ncol(full.set)], sets.bar.color = my.cols, set.metadata = list(data = metadata, plots = list(list(type="matrix_rows", column = "sets", colors = my.combination, alpha = 0.5))), order.by = "freq", text.scale = 1.7, keep.order = TRUE) 
+    p <- upset(full.set, sets=colnames(full.set)[2:ncol(full.set)], sets.bar.color = my.cols, set.metadata = list(data = metadata, plots = list(list(type="matrix_rows", column = "sets", colors = my.combination, alpha = 0.5))), order.by = "freq", text.scale = 1.7, keep.order = TRUE) 
+    print(p)
     dev.off()
   }
   if (write.ids == TRUE) {
@@ -662,9 +665,8 @@ UniquemiRmRNA <- function(list.of.df) {
     # my.geneset = vector of gene names 
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-
 #BestPairs <- function(my.network, my.geneset) {
-#  WGCNA <- my.network[[1]][my.network[[1]]$node1 %in%  my.geneset | my.network[[1]]$node2 %in%  my.geneset ,]
+#  WGCNA <- my.network[my.network$node1 %in%  my.geneset | my.network$node2 %in%  my.geneset ,]
 #  WGCNAmiR <- WGCNA[grep("hsa|let", WGCNA$node1),]
 #  WGCNAmiR <- data.frame(setDT(WGCNAmiR[,1:2])[, list(id=paste(node2, collapse=",")), by = node1])
 #  colnames(WGCNAmiR) <- c("miRNA", "Gene")
@@ -673,48 +675,36 @@ UniquemiRmRNA <- function(list.of.df) {
 
 BestPairs <- function(my.network, my.geneset) {
   WGCNA <- my.network[my.network$node1 %in%  my.geneset | my.network$node2 %in%  my.geneset ,]
-  WGCNAmiR <- WGCNA[grep("hsa|let", WGCNA$node1),]
-  WGCNAmiR <- data.frame(setDT(WGCNAmiR[,1:2])[, list(id=paste(node2, collapse=",")), by = node1])
-  colnames(WGCNAmiR) <- c("miRNA", "Gene")
+  WGCNAmiR <- WGCNA[grep("hsa|let", WGCNA$node1),1:4]
+  colnames(WGCNAmiR) <- c("miRNA", "Gene", "Dir miRNA", "Dir Gene")
   return(WGCNAmiR)
 }
-
 
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Plor co-expressed genes from modules with miRNA interaction partner
 # Takes as arguments;
-    # my.n = column index referring to set (DE contrast or other set).
-    # my.maindf = dataframe where column 1 = genes, 2 = miRNA and remaining columns correspond to set names. Values are either NA, Up or Down. See example file "BestMiRInfoConcatnatedSmall.txt".
-    # my.modname = vector with name(s) of module(s).
+    # my.f = dataframe where column 1 = genes, 2 = miRNA, 3 = direction of either miRNA OR Gene, 4 = miRNA family and 5 = module colors
     # my.set = name of set.
     # my.h, my.w =  integers specifying hight and width of plot.
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
-InformationPlot(4, Frame, c("green", "red"), "Luminal and HER2 vs TNBC", 4, 13)
-
-InformationPlot <- function(my.n, my.maindf, my.modname, my.set, my.h, my.w) {
-  df <- my.maindf[,c(1,2,my.n,13,14)]
-  colnames(df) <- c("Gene", "miRNA", "Dir", "Family", "Module")
-  df <- df[!is.na(df$Dir),]
-  df$Dir <- factor(df$Dir, levels = c("Up", "Down"))
-  df <- df[with(df, order(Dir,Family)),]
-  df$miRNA <- factor(df$miRNA, levels =  c(unique(df$miRNA)))
-  modules.list <- list()
-  for(idx in 1:length(my.modname)) {
-    m <- df[df$Module == my.modname[[idx]],]
-    if ("Up" %in% m$Dir & "Down" %in% m$Dir) {
-      cols <- c("#FF7777", "#242F40")
-    } else if ("Up" %in% m$Dir) {
-      cols <- c("#FF7777")
-    } else {
-      cols <-  c("#242F40")
-    }
-    m <- ggplot(m, aes(x=Gene, y=miRNA,  fill=Dir, colour="white")) + geom_tile(colour="white") + theme_bw() + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + scale_fill_manual(values = cols) + labs(title=paste0(my.modname[[idx]], " module")) + theme(panel.grid.major.x = element_blank(), panel.grid.major.y = element_line(size=.1, color="black")) 
-    modules.list[[idx]] <- m 
+InformationPlot <- function(my.df, my.modname, my.set,  my.h, my.w) {
+  colnames(my.df) <- c("Gene", "miRNA", "Dir", "Family", "Module")
+  my.df$Dir <- factor(my.df$Dir, levels = c("up", "down"))
+  my.df <- my.df[with(my.df, order(Dir,Family)),]
+  my.df$miRNA <- paste0(as.character(my.df$miRNA), " (", as.character(my.df$Family), ")")
+  my.df$miRNA <- factor(as.character(my.df$miRNA), levels =  c(unique(as.character(my.df$miRNA))))
+  if ("up" %in% my.df$Dir & "down" %in% my.df$Dir) {
+    cols <- c("#FF7777", "#242F40")
+  } else if ("up" %in% my.df$Dir) {
+    cols <- c("#FF7777")
+  } else {
+    cols <-  c("#242F40")
   }
+  m <- ggplot(my.df, aes(x=Gene, y=miRNA,  fill=Dir, colour="white")) + geom_tile(colour="white") + theme_bw() + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + scale_fill_manual(values = cols) + labs(title=paste0(my.modname, " module")) + theme(panel.grid.major.x = element_blank(), panel.grid.major.y = element_line(size=.1, color="black")) 
   pdf(paste0(my.set, ".pdf"), height = my.h, width = my.w)
-  grid.arrange(grobs = modules.list, ncol =2, top=my.set)
+  m
   dev.off()
 }
 

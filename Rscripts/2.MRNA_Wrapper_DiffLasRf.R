@@ -6,19 +6,14 @@
 
 # Working Directory and Load/Read
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-my.wd <- ""
-
-setwd(paste0(my.wd,"/Data"))
-load("yfilt.avg.Rdata")
-
-#setwd(paste0(my.wd,"/Data/mRNARawFiles"))
-
+my.wd <- "~/Desktop/Thilde/MS_MS_TIF_analysis_2014_2015/TIF_miRNAmRNA/TIF_mRNA"
+setwd(paste0(my.wd,"/Data/mRNARawFiles"))
 
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Read datafiles
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-#targets <- readTargets("MergedTarFile.txt")
-#x <- read.maimages(targets, source="agilent", green.only=TRUE, other.columns="gIsWellAboveBG")
+targets <- readTargets("MergedTarFile.txt")
+x <- read.maimages(targets, source="agilent", green.only=TRUE, other.columns="gIsWellAboveBG")
 
 
 
@@ -27,29 +22,29 @@ load("yfilt.avg.Rdata")
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 # Background correction
-#y <- backgroundCorrect(x, method="normexp")
-#y <- normalizeBetweenArrays(y, method="quantile")
+y <- backgroundCorrect(x, method="normexp")
+y <- normalizeBetweenArrays(y, method="quantile")
 
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 # Remove controls and genes not expressed above background
-#Control <- y$genes$ControlType!=0
-#IsExpr <- rowSums(y$other$gIsWellAboveBG > 0) >= 9
+Control <- y$genes$ControlType!=0
+IsExpr <- rowSums(y$other$gIsWellAboveBG > 0) >= 9
 
-#yfilt <- y[!Control & IsExpr, ]
+yfilt <- y[!Control & IsExpr, ]
 
 # Low tumour percentage, Replicates, Missing Info on TILs and Grade
-#LowTP <- y$targets$tp <= 30
-#LowTP <- which(ifelse(is.na(LowTP), FALSE, LowTP))
-#NoGR <- which(is.na(y$targets$GR))
-#NoTILS <- which(is.na(y$targets$TILs))
-#IsApo <- which(y$targets$Tumor_subtype_corrected_2015_11_20 == "Apocrine")
-#IsOther <- which(y$targets$ID %in% c("TIF54", "TIF106", "TIF290", "TIF109.1", "TIF123.1", "TIF123.2", "TIF46.1", "TIF49.1", "TIFkontroll", "TIFkontroll.1"))
-#rmsamp <- unique(sort(c(LowTP,NoGR,NoTILS,IsApo,IsOther)))
+LowTP <- y$targets$tp <= 30
+LowTP <- which(ifelse(is.na(LowTP), FALSE, LowTP))
+NoGR <- which(is.na(y$targets$GR))
+NoTILS <- which(is.na(y$targets$TILs))
+IsApo <- which(y$targets$Tumor_subtype_corrected_2015_11_20 == "Apocrine")
+IsOther <- which(y$targets$ID %in% c("TIF54", "TIF106", "TIF290", "TIF109.1", "TIF123.1", "TIF123.2", "TIF46.1", "TIF49.1", "TIFkontroll", "TIFkontroll.1")) 
+rmsamp <- unique(sort(c(LowTP,NoGR,NoTILS,IsApo,IsOther)))
 
-#yfilt <- yfilt[,-rmsamp]
+yfilt <- yfilt[,-rmsamp]
 
-#yfilt.avg <- avereps(yfilt, ID=yfilt$genes$GeneName)
+yfilt.avg <- avereps(yfilt, ID=yfilt$genes$GeneName)
 
 
 
@@ -57,10 +52,11 @@ load("yfilt.avg.Rdata")
 
 # Map missing ensembl transcript IDs
 
-#yfilt.avg <- MapENST(yfilt.avg)
+yfilt.avg <- MapENST(yfilt.avg)
 
 
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 
 # Factor Vectors for DEA, arrays and grade/immuno information
 Array <- as.factor(as.character(yfilt.avg$targets$Array))
@@ -72,7 +68,11 @@ ER <- factor(as.character(yfilt.avg$targets$ER), levels = c("ERp", "ERm"))
 PGR <- factor(as.character(yfilt.avg$targets$PGR),levels = c("PGRp", "PGRm"))
 AR <- factor(as.character(yfilt.avg$targets$AR),levels = c("ARp", "ARRm"))
 HER2 <- factor(as.character(yfilt.avg$targets$HER2),levels = c("H3","H2","H1","H0"))
-ST <- as.factor(as.character(yfilt.avg$targets$Tumor_subtype_corrected_2015_11_20))
+
+TS <- as.factor(as.character(yfilt.avg$targets$Tumor_subtype_corrected_2015_11_20))
+TS <- factor(ifelse(TS == "Luminal", "LumA", as.character(TS)), levels = c("LumA", "LumB", "LumB_HER2_enriched", "HER2", "TNBC"))
+TS.cols <- c("#04724D","#BDCC9F","#D2AB99","#DD614A","#310A31")
+
 
 
 
@@ -81,19 +81,22 @@ ST <- as.factor(as.character(yfilt.avg$targets$Tumor_subtype_corrected_2015_11_2
 # Combat Correction for MDS Plotting
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+
+
 # Combat correction for array with model design (tumour subtype information)
-mod_design <-  model.matrix(~ST)
-mrna_combat_ST <- ComBat(dat=yfilt.avg$E, mod= mod_design, batch = Array)
-colnames(mrna_combat_ST) <- yfilt.avg$targets$ID
+mod_design <-  model.matrix(~TS)
+mrna_combat_TS <- ComBat(dat=yfilt.avg$E, mod= mod_design, batch = Array)
+colnames(mrna_combat_TS) <- yfilt.avg$targets$ID
 
 # Combat correction for array NO model design 
 mrna_combat <- ComBat(dat=yfilt.avg$E, batch = Array)
 colnames(mrna_combat) <- yfilt.avg$targets$ID
 
+
 # MDS plotting
-myMDSplot(yfilt.avg$E, as.factor(as.character(yfilt.avg$targets$Tumor_subtype_corrected_2015_11_20)), "")
-myMDSplot(mrna_combat_ST, as.factor(as.character(yfilt.avg$targets$Tumor_subtype_corrected_2015_11_20)), "")
-myMDSplot(mrna_combat, as.factor(as.character(yfilt.avg$targets$Tumor_subtype_corrected_2015_11_20)), "")
+myMDSplot(yfilt.avg$E, TS, "", TS.cols)
+myMDSplot(mrna_combat_ST, TS, "", TS.cols)
+myMDSplot(mrna_combat, TS, "", TS.cols)
 
 
 
@@ -128,22 +131,24 @@ dend <- as.dendrogram(hclust(dist(t(dend)), method = "ward.D2"))
 
 # Colors
 my.CLUS2 <- get_colors(clusters2, c("#B2B09B","#43AA8B"))
-my.CLUS3 <- get_colors(clusters3,  c("#43AA8B", "#2F2D2E" ,"#B2B09B"))
+my.CLUS3 <- get_colors(clusters3,  c("#B2B09B", "#B2B09B", "#43AA8B"))
 my.ER <- get_colors(ER, c("#FFFCF7","grey60"))
 my.PGR <- get_colors(PGR, c("#FFFCF7","grey60"))
 my.GR <- get_colors(GR, c("#0071AA","#0071AA","#032A63"))
 my.TILS <- get_colors(TILS, c("#F7D76F" ,"#EFCA4F", "#EDAB49" ,"#EE964B"))
-my.SUB <- get_colors(ST, c("#A63A50", "#72A1E5", "#3A435E", "#4E0250", "#72A1E5", "#F7ACCF"))
+my.TS <- get_colors(TS, c("#FFAAA3", "#6F73E2", "#BFDDFF", "#BFDDFF", "#FF5465"))
+
+
 
 # Plot dendogram
 
-
-#pdf("Dendogram_mRNA.pdf", height = 14, width = 16)
+#setwd(paste0(my.wd,"/Results/Plots"))
+#pdf("Dendogram_mRNA.pdf", height = 16, width = 16)
 
 par(cex=0.6, mar = c(8,3,3,8))
 nodePar <- list(lab.cex = 1.5, pch = c(NA, 19), col = "black")
 plot(dend, horiz = TRUE, nodePar = nodePar)
-colored_bars(cbind(my.ER, my.PGR, my.TILS, my.GR, my.CLUS2), dend, rowLabels = c("ER", "PGR", "TILs", "GR", "CLUST"), horiz = TRUE, cex.rowLabels = 1.1)
+colored_bars(cbind(my.TS, my.ER, my.PGR, my.TILS, my.GR, my.CLUS2), dend, rowLabels = c("TS","ER", "PGR", "TILs", "GR", "CLUST"), horiz = TRUE, cex.rowLabels = 1.1)
 
 #dev.off()
 
@@ -185,10 +190,10 @@ scatterplot3d(res, pch = 16, cex.symbols = 2, color = my.CLUS2, grid=TRUE, angle
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
-mod_design <-  model.matrix(~0+ST+Array+TILSS)
+mod_design <-  model.matrix(~0+TS+Array+TILSS)
 
 # Create all combinations of BC subtypes for LIMMA DA analysis
-combinations <- data.frame(t(combn(paste0("ST", levels(ST)), 2)))
+combinations <- data.frame(t(combn(paste0("TS", levels(TS)), 2)))
 combinations$contr <- apply(combinations[,colnames(combinations)], 1, paste, collapse = "-")
 
 # Making group contrasts 
@@ -198,7 +203,7 @@ contrast.matrix <- eval(as.call(c(as.symbol("makeContrasts"),as.list(as.characte
 my.mRNAsST <- DE_mRNA_apply(contrast.matrix, yfilt.avg, mod_design, 1, 0.05, FALSE, NULL)
 
 
-
+#setwd(paste0(my.wd,"/Results/DE_Tables"))
 #write.table(my.mRNAsST$`STHER2-STLumA`[[1]], "HER2_LumA_up.txt", sep = "\t", row.names = FALSE, col.names = TRUE, quote = FALSE)
 #write.table(my.mRNAsST$`STHER2-STLumA`[[2]], "HER2_LumA_down.txt", sep = "\t", row.names = FALSE, col.names = TRUE, quote = FALSE)
 
@@ -556,7 +561,7 @@ my_forest_conver(5, t(mrna_combat), PGR)
 # Load Saved DE Sets From Above
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-setwd(paste0(my.wd,"/DE_Tables/mRNA_Tables"))
+setwd(paste0(my.wd,"/Results/DE_Tables"))
 
 C1C2up <- read.delim("C1_C2_up.txt", header = TRUE)$GeneName
 C1C2down <- read.delim("C1_C2_down.txt", header = TRUE)$GeneName
@@ -598,6 +603,7 @@ SubtypesAll <- unique(sort(c(as.character(HER2TNBCup) , as.character(HER2TNBCdow
 
 
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+setwd(paste0(my.wd,"/Results/Plots"))
 
 
 # Colors

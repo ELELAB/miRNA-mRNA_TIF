@@ -3,7 +3,7 @@
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 # Working directory
-my.wd <- ""
+my.wd <- "~/Desktop/Thilde/MS_MS_TIF_analysis_2014_2015/TIF_miRNAmRNA/TIF_miRNA"
 
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -91,7 +91,10 @@ TIFinfo <- NIFTIFinfo[Tn:ncol(NIFTIF),]
 
 TN <- as.factor(as.character(NIFTIFinfo$TN))
 TSN <- as.factor(as.character(NIFTIFinfo$Tumor_subtype_corrected_2015_11_20))
+TSN <- factor(as.character(TSN), levels = c("normal", "LumA", "LumB", "LumB_HER2_enriched", "HER2", "TNBC"))
 TS <- as.factor(as.character(TIFinfo$Tumor_subtype_corrected_2015_11_20))
+TS <- factor(as.character(TS), levels = c("LumA", "LumB", "LumB_HER2_enriched", "HER2", "TNBC"))
+
 TNBC <-  as.factor(as.character(ifelse(!(TSN %in% c("TNBC", "normal")), "Other", as.character(TSN))))
 patient <- as.factor(paste0("p", NIFTIFinfo$patient))
 
@@ -111,7 +114,9 @@ TILSN <- factor(as.character(ifelse(NIFTIFinfo$TILS == "T3_outside_tumor", "T3",
 
 # Color vectors
 TN.cols <- c("grey60","violetred4")
-TSN.cols <- c("purple", "aquamarine3", "darkblue", "pink", "orange", "grey60")
+#TSN.cols <- c("purple", "aquamarine3", "darkblue", "pink", "orange", "grey60")
+TSN.cols <- c("grey60","#04724D","#BDCC9F","#D2AB99","#DD614A","#310A31")
+TS.cols  <- c("#04724D","#BDCC9F","#D2AB99","#DD614A","#310A31")
 
 colov <- c("#08605F", "#177E89", "#CAD1D1", "#598381","#8E936D")
 Cl.cols <- c("#D86654", "#254441", "#43AA8B", "#B2B09B")
@@ -138,28 +143,39 @@ Cl.cols <- c("#D86654", "#254441", "#43AA8B", "#B2B09B")
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Multidimensional Scaling Plots
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+setwd(paste0(my.wd,"/Results/Plots/"))
 
 
 # Combat batch correction for patient effects - only for visualization
-CP1 <- ComBat(as.matrix(log2(NIFTIF)), batch = patient)
+datacorr <- ComBat(as.matrix(log2(NIFTIF)), batch = patient)
 
 #pdf("MDSTN.pdf", height = 9, width = 10)
 
 # Corrected, color by tumour or normal
-m1 <- myMDSplot(CP1, TN, patient, TN.cols)
+TNcomb <- myMDSplot(datacorr, TN, "", TN.cols)
 # Not corrected, color by tumour or normal
-m2 <- myMDSplot(log2(NIFTIF), TN, patient, TN.cols)
+TNnone <- myMDSplot(log2(NIFTIF), TN, "", TN.cols)
 
-#grid.arrange(grobs = list(m2, m1), ncol = 1, main = "Main title")
+
+# Not corrected, color by tumour subtypes
+mod_design <-  model.matrix(~TS)
+TSnone <- myMDSplot(log2(TIF), TS, "", TS.cols)
+
+#grid.arrange(grobs = list(TNnone, TNcomb, TSnone), ncol = 2, main = "Main title")
 #dev.off()
 
+# --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-#pdf("MDSTSN.pdf", height = 7, width = 10)
+# Combat batch correction for patient effects - only for visualization
+mod_design <-  model.matrix(~TSN)
+datacorr <- ComBat(as.matrix(log2(NIFTIF)), mod = mod_design, batch = patient)
+
+# Corrected, color by tumour or normal
+TSNcomb <- myMDSplot(datacorr, TSN, "", TSN.cols)
 
 # Not corrected, color by tumour subtypes or normal
-myMDSplot(log2(NIFTIF), TSN, "", TSN.cols)
+TSNnone <- myMDSplot(log2(NIFTIF), TSN, "", TSN.cols)
 
-#dev.off()
 
 
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -200,13 +216,14 @@ my.TILS <- get_colors(TIFinfo$TILS, c("#F7D76F" ,"#EFCA4F", "#EDAB49" ,"#EE964B"
 my.CLUS2 <- get_colors(clusters2, c("#43AA8B", "#B2B09B"))
 my.CLUS3 <- get_colors(clusters3, c("#43AA8B","#696773", "#B2B09B"))
 my.MFS <- get_colors(TIFinfo$Meta_free_surv, c("white", "black"))
+my.TS <- get_colors(TS, c("#FFAAA3", "#6F73E2", "#BFDDFF", "#BFDDFF", "#FF5465"))
 
 #pdf("Dendogram_miRNA.pdf", height = 10, width = 14)
 
 par(cex=0.6, mar = c(8,3,3,8))
 nodePar <- list(lab.cex = 1.5, pch = c(NA, 19), col = "black")
 plot(dend, horiz = TRUE, nodePar = nodePar)
-colored_bars(cbind(my.MFS, my.ER, my.PGR, my.TILS, my.GR, my.CLUS2), dend, rowLabels = c("MFS", "ER", "PGR", "TILs", "GR", "Clusters"), horiz = TRUE, cex.rowLabels = 1.1)
+colored_bars(cbind(my.TS, my.ER, my.PGR, my.TILS, my.GR, my.CLUS2), dend, rowLabels = c("TS", "ER", "PGR", "TILs", "GR", "Clusters"), horiz = TRUE, cex.rowLabels = 1.1)
 
 #dev.off()
 
@@ -262,7 +279,7 @@ my_contrast <- makeContrasts("TNtumor-TNnormal", levels = my_design_TN)
 DE_TN <- DE_miRNA(my_contrast, log2(NIFTIF), my_design_TN, 1, 0.05, patient)
 
 
-
+#setwd(paste0(my.wd,"/Results/DE_Tables"))
 #write.table(DE_TN[[1]], "TIF_NIF_up.txt", sep = "\t", row.names = TRUE, col.names = TRUE, quote = FALSE)
 #write.table(DE_TN[[2]], "TIF_NIF_down.txt", sep = "\t", row.names = TRUE, col.names = TRUE, quote = FALSE)
 
@@ -482,7 +499,7 @@ GRdown <- DE_GRN$`GRNG3-GRNG2`[[2]][rownames(DE_GRN$`GRNG3-GRNG2`[[2]]) %in% int
 
 # Load DE Datasets written out from analysis above.
 
-setwd(paste0(my.wd,"/DE_Tables/miRNA_Tables"))
+setwd(paste0(my.wd,"/Results/DE_Tables"))
 
 # TIF_NIF
 TIFNIFup <- rownames(read.delim("TIF_NIF_up.txt", header = TRUE))
@@ -520,6 +537,8 @@ HGLGdown <- rownames(read.delim("HG_LG_down.txt", header = TRUE))
 
 
 
+
+setwd(paste0(my.wd,"/Results/Plots/"))
 
 # Color scheme
 colov <- c("#496377", "#177E89", "#08605F","#598381", "#B5CA8D", "#CAD1D1", "#99AD93")
@@ -737,6 +756,7 @@ LASSO_TILS <- Reduce(intersect, list(LASSO_miRNA(1, log2(TIF), group_TILS, FALSE
 
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+#setwd(paste0(my.wd,"/Results/Tables/consensus_DE_RF_LASSO/"))
 
 
 # TIF vs NIF

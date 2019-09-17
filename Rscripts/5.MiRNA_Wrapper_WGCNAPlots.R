@@ -6,8 +6,8 @@
 # Working directory
 
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-my.wd <- ""
-setwd(paste0(my.wd, "/DE_Tables/mRNA_Tables"))
+my.wd <- "~/Desktop/Thilde/MS_MS_TIF_analysis_2014_2015/TIF_miRNAmRNA/TIF_mRNA"
+setwd(paste0(my.wd, "/Results/DE_Tables"))
 
 
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -81,7 +81,10 @@ HGLGmR <- rbind(HGLGmR_up, HGLGmR_down)
 # Load Modules
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+
+setwd(paste0(my.wd, "/Results"))
 load("genes_modules_colors.RData")
+colnames(genes_colors) <- c("Gene", "mergedColors")
 
 
 # subset by colors of interest
@@ -97,50 +100,50 @@ Grey60 <-  genes_colors[genes_colors$mergedColors == "grey60",]
 
 # Extract genes from modules
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-TILsModules <- table(genes_colors[genes_colors$V1 %in% HTLTmR$GeneName, ]$mergedColors)
-ClusModules <- table(genes_colors[genes_colors$V1 %in% C1C2mR$GeneName, ]$mergedColors)
-GradeModules <- table(genes_colors[genes_colors$V1 %in% HGLGmR$GeneName, ]$mergedColors)
-ERModules <- table(genes_colors[genes_colors$V1 %in% ERpERnmR$GeneName, ]$mergedColors)
-HER2TNBCModules <- table(genes_colors[genes_colors$V1 %in% HER2TNBCmR$GeneName, ]$mergedColors)
-LumATNBCModules <- table(genes_colors[genes_colors$V1 %in% LumATNBCmR$GeneName, ]$mergedColors)
-LumBTNBCModules <- table(genes_colors[genes_colors$V1 %in% LumBTNBCmR$GeneName, ]$mergedColors)
+TILsModules <- table(genes_colors[genes_colors$Gene %in% HTLTmR$GeneName, ]$mergedColors)
+ClusModules <- table(genes_colors[genes_colors$Gene %in% C1C2mR$GeneName, ]$mergedColors)
+GradeModules <- table(genes_colors[genes_colors$Gene %in% HGLGmR$GeneName, ]$mergedColors)
+ERModules <- table(genes_colors[genes_colors$Gene %in% ERpERnmR$GeneName, ]$mergedColors)
+HER2TNBCModules <- table(genes_colors[genes_colors$Gene %in% HER2TNBCmR$GeneName, ]$mergedColors)
+LumATNBCModules <- table(genes_colors[genes_colors$Gene %in% LumATNBCmR$GeneName, ]$mergedColors)
+LumBTNBCModules <- table(genes_colors[genes_colors$Gene %in% LumBTNBCmR$GeneName, ]$mergedColors)
 
 
 
 # Venn Diagrams quantify the genes in modules 
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 pdf("vennTILs.pdf")
-vennTILs <- venn.diagram(list(A=HTLTmR$GeneName, B=Yellow$V1, C=Lightgreen$V1), category.names = c("DE TILs", "Yellow Module","LightGreen Module"), filename=NULL, lwd = 0, cat.pos=0, sub.cex = 2, cat.cex= 1.5, cex=1.5, fill=c("#FFF4EC", "#DDEA7C", "#91F5AD"))
+vennTILs <- venn.diagram(list(A=HTLTmR$GeneName, B=Yellow$Gene, C=Lightgreen$Gene), category.names = c("DE TILs", "Yellow Module","LightGreen Module"), filename=NULL, lwd = 0, cat.pos=0, sub.cex = 2, cat.cex= 1.5, cex=1.5, fill=c("#FFF4EC", "#DDEA7C", "#91F5AD"))
 grid.draw(vennTILs)
 dev.off()
 
 pdf("vennGR.pdf")
-vennGR <- venn.diagram(list(A=HGLGmR$GeneName, B=Blue$V1, C=Green$V1), category.names = c("DE Grade", "Blue Module", "Green Module"), filename=NULL, lwd = 0, cat.pos=0, sub.cex = 2, cat.cex= 1.5, cex=1.5, fill=c("#FFF4EC", "#445E93", "#4FB286"))
+vennGR <- venn.diagram(list(A=HGLGmR$GeneName, B=Blue$Gene, C=Green$Gene), category.names = c("DE Grade", "Blue Module", "Green Module"), filename=NULL, lwd = 0, cat.pos=0, sub.cex = 2, cat.cex= 1.5, cex=1.5, fill=c("#FFF4EC", "#445E93", "#4FB286"))
 grid.draw(vennGR)
 dev.off()
 
 pdf("vennClus.pdf")
-vennClus <- venn.diagram(list(A=C1C2mR$GeneName, B=Yellow$V1, C=Green$V1), category.names = c("DE Clusters", "Yellow Module", "Green Module"), filename=NULL, lwd = 0, cat.pos=0, sub.cex = 2, cat.cex= 1.5, cex=1.5, fill=c("#FFF4EC", "#DDEA7C", "#4FB286"))
+vennClus <- venn.diagram(list(A=C1C2mR$GeneName, B=Yellow$Gene, C=Green$Gene), category.names = c("DE Clusters", "Yellow Module", "Green Module"), filename=NULL, lwd = 0, cat.pos=0, sub.cex = 2, cat.cex= 1.5, cex=1.5, fill=c("#FFF4EC", "#DDEA7C", "#4FB286"))
 grid.draw(vennClus)
 dev.off()
 
 pdf("vennER.pdf")
-vennER <- venn.diagram(list(A=ERpERnmR$GeneName, B=Green$V1), category.names = c("DE Estrogen Receptor", "Green Module"), filename=NULL, lwd = 0, cat.pos=0, sub.cex = 2, cat.cex= 1.5, cex=1.5, fill=c("#FFF4EC", "#4FB286"))
+vennER <- venn.diagram(list(A=ERpERnmR$GeneName, B=Green$Gene), category.names = c("DE Estrogen Receptor", "Green Module"), filename=NULL, lwd = 0, cat.pos=0, sub.cex = 2, cat.cex= 1.5, cex=1.5, fill=c("#FFF4EC", "#4FB286"))
 grid.draw(vennER)
 dev.off()
 
 pdf("vennHER2.pdf")
-vennHER2 <- venn.diagram(list(A=HER2TNBCmR$GeneName, B=Grey60$V1), category.names = c("DE Her2 vs TNBC", "Grey60 Module"), filename=NULL, lwd = 0, cat.pos=0, sub.cex = 2, cat.cex= 1.5, cex=1.5, fill=c("#FFF4EC", "grey60"))
+vennHER2 <- venn.diagram(list(A=HER2TNBCmR$GeneName, B=Grey60$Gene), category.names = c("DE Her2 vs TNBC", "Grey60 Module"), filename=NULL, lwd = 0, cat.pos=0, sub.cex = 2, cat.cex= 1.5, cex=1.5, fill=c("#FFF4EC", "grey60"))
 grid.draw(vennHER2)
 dev.off()
 
 pdf("vennLumA.pdf")
-vennLumA <- venn.diagram(list(A=LumATNBCmR$GeneName, B=Grey60$V1, C=Green$V1, D=Red$V1), category.names = c("DE LumA vs TNBC", "Grey60 Module", "Green Module", "Red Module"), filename=NULL, lwd = 0, cat.pos=0, sub.cex = 2, cat.cex= 1.5, cex=1.5, fill=c("#FFF4EC", "grey60", "#4FB286", "#D35269"))
+vennLumA <- venn.diagram(list(A=LumATNBCmR$GeneName, B=Grey60$Gene, C=Green$Gene, D=Red$Gene), category.names = c("DE LumA vs TNBC", "Grey60 Module", "Green Module", "Red Module"), filename=NULL, lwd = 0, cat.pos=0, sub.cex = 2, cat.cex= 1.5, cex=1.5, fill=c("#FFF4EC", "grey60", "#4FB286", "#D35269"))
 grid.draw(vennLumA)
 dev.off()
 
 pdf("vennLumB.pdf")
-vennLumB <- venn.diagram(list(A=LumBTNBCmR$GeneName, B=Grey60$V1, C=Green$V1, D=Red$V1), category.names = c("DE LumB vs TNBC", "Grey60 Module", "Green Module", "Red Module"), filename=NULL, lwd = 0, cat.pos=0, sub.cex = 2, cat.cex= 1.5, cex=1.5, fill=c("#FFF4EC", "grey60", "#4FB286", "#D35269"))
+vennLumB <- venn.diagram(list(A=LumBTNBCmR$GeneName, B=Grey60$Gene, C=Green$Gene, D=Red$Gene), category.names = c("DE LumB vs TNBC", "Grey60 Module", "Green Module", "Red Module"), filename=NULL, lwd = 0, cat.pos=0, sub.cex = 2, cat.cex= 1.5, cex=1.5, fill=c("#FFF4EC", "grey60", "#4FB286", "#D35269"))
 grid.draw(vennLumB)
 dev.off()
 
@@ -150,13 +153,13 @@ dev.off()
 # Extract Genesets of Interest Across Modules Correlated with Clinical Variables.
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-TILsWGCNA <- intersect(HTLTmR$GeneName, c(as.character(Yellow$V1), as.character(Lightgreen$V1)))
-GRWGCNA <- intersect(HGLGmR$GeneName, c(as.character(Blue$V1), as.character(Green$V1)))
-ClusWGCNA <- intersect(C1C2mR$GeneName, c(as.character(Yellow$V1), as.character(Green$V1)))
-ERWGCNA <- intersect(ERpERnmR$GeneName, as.character(Green$V1))
-HER2TNBCWGCNA <- intersect(HER2TNBCmR$GeneName, as.character(Grey60$V1))
-LumATNBCWGCNA <- intersect(LumATNBCmR$GeneName, c(as.character(Grey60$V1),as.character(Green$V1), as.character(Red$V1)))
-LumBTNBCWGCNA <- intersect(LumBTNBCmR$GeneName, c(as.character(Grey60$V1),as.character(Green$V1), as.character(Red$V1)))
+TILsWGCNA <- intersect(HTLTmR$GeneName, c(as.character(Yellow$Gene), as.character(Lightgreen$Gene)))
+GRWGCNA <- intersect(HGLGmR$GeneName, c(as.character(Blue$Gene), as.character(Green$Gene)))
+ClusWGCNA <- intersect(C1C2mR$GeneName, c(as.character(Yellow$Gene), as.character(Green$Gene)))
+ERWGCNA <- intersect(ERpERnmR$GeneName, as.character(Green$Gene))
+HER2TNBCWGCNA <- intersect(HER2TNBCmR$GeneName, as.character(Grey60$Gene))
+LumATNBCWGCNA <- intersect(LumATNBCmR$GeneName, c(as.character(Grey60$Gene),as.character(Green$Gene), as.character(Red$Gene)))
+LumBTNBCWGCNA <- intersect(LumBTNBCmR$GeneName, c(as.character(Grey60$Gene),as.character(Green$Gene), as.character(Red$Gene)))
 Subtypes <- unique(sort(c(HER2TNBCWGCNA, LumATNBCWGCNA,LumBTNBCWGCNA )))
 
 
@@ -170,10 +173,13 @@ setwd(paste0(my.wd, "/Data"))
 load("yfilt.avg.Rdata")
 
 
+ClusWGCNAsimple <- unique(c(setdiff(ClusWGCNA,TILsWGCNA), GRWGCNA))
+
 # Extract genes of interest
 TILsWGCNA <- yfilt.avg$E[rownames(yfilt.avg$E) %in% TILsWGCNA,]
 GRWGCNA <- yfilt.avg$E[rownames(yfilt.avg$E) %in% GRWGCNA,]
-#ClusWGCNA <- yfilt.avg$E[rownames(yfilt.avg$E) %in% ClusWGCNA,]
+ClusWGCNA <- yfilt.avg$E[rownames(yfilt.avg$E) %in% ClusWGCNA,]
+ClusWGCNAsimple <- yfilt.avg$E[rownames(yfilt.avg$E) %in% ClusWGCNAsimple,]
 ERWGCNA <- yfilt.avg$E[rownames(yfilt.avg$E) %in% ERWGCNA,]
 Subtypes <- yfilt.avg$E[rownames(yfilt.avg$E) %in% Subtypes,]
 
@@ -196,6 +202,13 @@ heat.cols <- viridis(option = "magma", n=20, direction = -1)
 
 
 
+#setwd(paste0(my.wd,"/Results/Plots/Heatmaps"))
+
+
+
+pdf("BestCandClusGR.pdf",height = 16, width = 8)
+heatmap.plus(as.matrix(ClusWGCNAsimple), col=heat.cols, hclustfun=function(d) hclust(d, method="ward.D2"), trace="none", Rowv = NA, labCol="", ColSideColors=GR.cols, margins = c(14,8), cexCol=1.2, cexRow = 0.9)
+dev.off()
 
 #pdf("BestCandGrade.pdf", height = 6, width = 8)
 heatmap.plus(as.matrix(GRWGCNA), col=heat.cols, hclustfun=function(d) hclust(d, method="ward.D2"), trace="none", Rowv = NA, labCol="", ColSideColors=GR.cols, margins = c(14,8), cexCol=1.2, cexRow = 1)
@@ -220,7 +233,9 @@ heatmap.plus(as.matrix(scale(Subtypes, scale = FALSE)), col=heat.cols, hclustfun
 # Load Networks
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-setwd(paste0(my.wd, "/Network_Tables"))
+
+my.wd2 <- "~/Desktop/Thilde/MS_MS_TIF_analysis_2014_2015/TIF_miRNAmRNA/Joint"
+setwd(paste0(my.wd2, "/Tables/Network_Tables"))
 
 
 HER2TNBCNetworkLFC <- read.delim("HER2TNBCNetworkLFC.txt", header = TRUE)
@@ -247,7 +262,7 @@ ClusWGCNAmiR <- BestPairs(C1C2NetworkLFC, ClusWGCNA)
 LumATNBCWGCNAmiR <- BestPairs(LumATNBCNetworkLFC, LumATNBCWGCNA)
 #write.table(LumATNBCWGCNAmiR, "LumATNBCWGCNAmiR.txt", sep = "\t", row.names = FALSE, col.names = TRUE, quote = FALSE)
 
-#HER2TNBCWGCNAmiR <- BestPairs(HER2TNBCNetworkLFC, HER2TNBCWGCNA)
+HER2TNBCWGCNAmiR <- BestPairs(HER2TNBCNetworkLFC, HER2TNBCWGCNA)
 #write.table(HER2TNBCWGCNAmiR, "HER2TNBCWGCNAmiR.txt", sep = "\t", row.names = FALSE, col.names = TRUE, quote = FALSE)
 
 LumBTNBCWGCNAmiR <- BestPairs(LumBTNBCNetworkLFC, LumBTNBCWGCNA)
@@ -258,18 +273,58 @@ LumBTNBCWGCNAmiR <- BestPairs(LumBTNBCNetworkLFC, LumBTNBCWGCNA)
 # Make Summary Plots
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-# Load dataframe with best candidates
-BestCand <- read.delim("BestMiRInfoConcatnatedSmall.txt", header = TRUE)
+# Load miRNA families
+my.wd3 <- "~/Desktop/Thilde/MS_MS_TIF_analysis_2014_2015/TIF_miRNAmRNA/TIF_miRNA"
+setwd(paste0(my.wd3,"/Backgrounds_and_Databases/"))
 
-# Concatnate miRNA name with miRNA family
-BestCand$miRNA <- paste0(BestCand$miRNA, " (", BestCand$Family, ")")
+# Load miRNA families
+mirFam <- read.delim("miRFamTargetScan.txt", header = TRUE)
 
-InformationPlot(4, BestCand, c("green", "red"), "Luminal and HER2 vs TNBC", 4, 13)
-InformationPlot(5, BestCand, c("green"), "ER+ vs ER-", 4, 11)
-InformationPlot(8, BestCand, c("green",  "yellow"), "High TILs vs Low TILs and High Gr vs Low Gr", 10, 14)
-InformationPlot(9, BestCand, c("green"), "High Gr vs Low Gr",4, 11)
-InformationPlot(10, BestCand, c("green", "yellow"), "Metastasis", 6, 12)
-InformationPlot(11, BestCand, c("green", "red"), "Poor outcome", 3, 11)
+# Simplify annotation
+mirFamSimple <- mirFam[,c(1,4)]
+mirFamSimple$Family <- gsub("-3p|-5p|-2-3p|-1-3p|-2-3p|-1-5p|-2-5p|[.]1|[.]2", "",mirFamSimple$Family)
+colnames(mirFamSimple) <- c("Family", "miRNA")
+
+
+
+# --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# Summary Plot Luminal vs TNBC
+
+# Bind datasets together
+LuminalTNBC <- rbind(LumATNBCWGCNAmiR, LumBTNBCWGCNAmiR) 
+LuminalTNBC <- unique(LuminalTNBC[order(LuminalTNBC$miRNA),])[,1:3]
+
+# Merge with miRNA families and module colors
+LuminalTNBC <- merge(LuminalTNBC, mirFamSimple, by = "miRNA", all.x = TRUE)
+LuminalTNBC <- merge(LuminalTNBC, genes_colors, by = "Gene", all.x = TRUE)
+
+# Separate modules
+LuminalTNBCGreen <- LuminalTNBC[LuminalTNBC$mergedColors == "green",]
+LuminalTNBCRed <- LuminalTNBC[LuminalTNBC$mergedColors == "red",]
+
+# Plot each module
+InformationPlot(LuminalTNBCGreen, "Green", "LuminalTNBCGreen", 6, 5)
+InformationPlot(LuminalTNBCRed, "Red", "LuminalTNBCRed", 5, 6)
+
+
+# --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# Summary Plot High TILs, Hig Grade vs Low TILs, Lower Grader
+
+# Bind datasets together
+TILsGR <- rbind(ClusWGCNAmiR, TILsWGCNAmiR, GRWGCNAmiR)
+TILsGR <- unique(TILsGR[order(TILsGR$miRNA),])[,1:3]
+
+# Merge with miRNA families and module colors
+TILsGR <- merge(TILsGR, mirFamSimple, by = "miRNA", all.x = TRUE)
+TILsGR <- merge(TILsGR, genes_colors, by = "Gene", all.x = TRUE)
+
+# Separate modules
+TILsGRGreen <-  TILsGR[TILsGR$mergedColors == "green",]
+TILsGRYellow <-  TILsGR[TILsGR$mergedColors == "yellow",]
+
+# Plot each module
+InformationPlot(TILsGRGreen, "Green", "TILsGRGreen", 20, 7)
+InformationPlot(TILsGRYellow, "Red", "TILsGRYellow", 3.5, 7)
 
 
 

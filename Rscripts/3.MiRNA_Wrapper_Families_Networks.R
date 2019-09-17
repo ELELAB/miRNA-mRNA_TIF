@@ -5,7 +5,7 @@
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 # Working directory
-my.wd <- ""
+my.wd <- "~/Desktop/Thilde/MS_MS_TIF_analysis_2014_2015/TIF_miRNAmRNA/TIF_miRNA"
 
 
 
@@ -20,7 +20,7 @@ AllmiR <- read.delim("TIF.txt", header = TRUE)
 
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-setwd(paste0(my.wd,"/DE_Tables/miRNA_Tables"))
+setwd(paste0(my.wd,"/Results/DE_Tables"))
 
 # TIF_NIF
 TIFNIFmiR_up <- read.delim("TIF_NIF_up.txt", header = TRUE)
@@ -101,6 +101,7 @@ mirFamSimple$Family <- gsub("-3p|-5p|-2-3p|-1-3p|-2-3p|-1-5p|-2-5p|[.]1|[.]2", "
 miRNAsets <- list(rownames(AllmiR), rownames(TIFNIFmiR), rownames(OtherTNBCmiR), rownames(C1C2miR), rownames(ERpERnmiR), rownames(PGRpPGRnmiR), rownames(HTLTmiR), rownames(HGLGmiR))
 miRNANames <- list("All", "TIFNIF", "Subtype", "Clusters", "ER", "PGR", "TILs", "Grade")
 
+setwd(paste0(my.wd,"/Results/Plots"))
 
 # For all sets map miRNAs to miRNA family
 families <- map_miRFam(miRNAsets, mirFamSimple, miRNANames)
@@ -144,7 +145,7 @@ InBioMapDE <- read.delim("InBioMapDB.txt", header = TRUE)
 # Load Datasets mRNAs
 
 
-setwd(paste0(my.wd,"/DE_Tables/mRNA_Tables"))
+setwd("~/Desktop/Thilde/MS_MS_TIF_analysis_2014_2015/TIF_miRNAmRNA/TIF_mRNA/Results/DE_Tables")
 
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -204,6 +205,9 @@ HGLGmR <- rbind(HGLGmR_up, HGLGmR_down)
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Construct Networks
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+setwd("~/Desktop/Thilde/MS_MS_TIF_analysis_2014_2015/TIF_miRNAmRNA/Joint/Tables/Network_Tables")
 
 
 
@@ -273,6 +277,8 @@ HGLGNetworkLFC <- DENetWorkFC(HGLGNetwork, HGLGmiR, HGLGmR)
 # Network Plots
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+setwd("~/Desktop/Thilde/MS_MS_TIF_analysis_2014_2015/TIF_miRNAmRNA/Joint/Plots/Network_Plots")
+#setwd("~/Desktop/Thilde/MS_MS_TIF_analysis_2014_2015/TIF_miRNAmRNA/Joint/Plots/Network_Plots2")
 
 Arcplot(HER2TNBCNetworkLFC[[1]], 12, 7, "HER2TNBC")
 Arcplot(LumATNBCNetworkLFC[[1]], 12, 7, "LumATNBC")
