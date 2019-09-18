@@ -2,13 +2,16 @@
 
 Repository associated with the publication:
 
+Secreted Breast Tumor Interstitial Fluid MicroRNAs and Their Target Genes are Associated with Triple Negative Breast Cancer, Tumor Grade and Immune Infiltration.
+
+Thilde Terkelsen, Francesco Russo, Pavel Gromov, Vilde Drageset Haakensen, Søren Brunak, Irina Gromova, Anders Krogh and Elena Papaleo*
+
 ###
 
-Corresponding author: Elena Papaleo, elenap@cancer.dk
+corresponding author: elenap@cancer.dk
 
-First author: Thilde Bagger Terkelsen, thilde@cancer.dk thildebate@gmail.com
+contacts for scripts: thilde@cancer.dk, elenap@cancer.dk
 
-R-scripts were created by: Thilde Bagger Terkelsen, thilde@cancer.dk thildebate@gmail.com
 
 This repository contains tumour interstitial fluid miRNA expression data and paired solid tumour tissue mRNA expression data from patients with breast cancer. The repository was made with intent of openly sharing both data and R-scripts used for analysis in relation to the publication.
 
