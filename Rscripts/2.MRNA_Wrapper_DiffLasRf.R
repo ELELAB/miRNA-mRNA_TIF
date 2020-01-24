@@ -6,7 +6,7 @@
 
 # Working Directory and Load/Read
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-my.wd <- "~/Desktop/Thilde/MS_MS_TIF_analysis_2014_2015/TIF_miRNAmRNA/TIF_mRNA"
+my.wd <- ""
 setwd(paste0(my.wd,"/Data/mRNARawFiles"))
 
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -142,7 +142,7 @@ my.TS <- get_colors(TS, c("#FFAAA3", "#6F73E2", "#BFDDFF", "#BFDDFF", "#FF5465")
 
 # Plot dendogram
 
-#setwd(paste0(my.wd,"/Results/Plots"))
+#setwd(paste0(my.wd,"/Results"))
 #pdf("Dendogram_mRNA.pdf", height = 16, width = 16)
 
 par(cex=0.6, mar = c(8,3,3,8))
@@ -603,7 +603,7 @@ SubtypesAll <- unique(sort(c(as.character(HER2TNBCup) , as.character(HER2TNBCdow
 
 
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-setwd(paste0(my.wd,"/Results/Plots"))
+setwd(paste0(my.wd,"/Results"))
 
 
 # Colors
@@ -630,10 +630,7 @@ myplot <- plot_upsetR(intsec.list, names(intsec.list), "Overlap_ConsensusSets", 
 # Load All COSMIC Sets and CancerMine Set
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-# Set WD
-my.wd <- "~/Desktop/Thilde/MS_MS_TIF_analysis_2014_2015/TIF_miRNAmRNA/Joint"
-setwd(my.wd)
-
+setwd(paste0(my.wd,"/Backgrounds_and_Databases"))
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 # BC specific pathogenic mutations from COSMIC.
@@ -663,7 +660,7 @@ CancerMine <- CancerMine[CancerMine$Citation.Sum >= 5, ]
 # Integrate Database Information with DE genes from Modules; Green, Red and Yellow.
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-setwd(paste0(my.wd, "/MiRSytem/Module_Genes"))
+setwd(paste0(my.wd, "/Results/Module_Genes"))
 
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 LuminalTNBCGenes <- as.character(read.delim("ModuleGenes_LuminalTNBC.txt", header = TRUE)$Gene)
@@ -708,7 +705,7 @@ PlotMuts(GradeTILs, "GradeTILs")
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 # Set WD to load network files:
-setwd(paste0(my.wd, "/Tables/Network_Tables"))
+setwd(paste0(my.wd, "/Results/Network_Tables"))
 
 
 # Call function "GenesImpact" on each set, using the COSMIC datasets.
@@ -730,10 +727,10 @@ HTLT <- GenesImpact("HTLTNodeInfo", CosmicCancerGenes, CosmicMuts, CosmicCNVs, C
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Read in all differentially expressed genes
 
-fl <- list.files(path=paste0(wd,"DE_Tables"))
+fl <- list.files(path=paste0(my.wd,"Results/DE_Tables"))
 fl <- fl[grep(".txt", fl)]
 
-setwd(paste0(my.wd,"/DE_Tables"))
+setwd(paste0(my.wd,"/Results/DE_Tables"))
 
 DEGs <- lapply(fl, function(x) read.delim(x, header = TRUE))
 DEGs <- data.frame(unique(sort(do.call("rbind", DEGs)$GeneName)))
@@ -744,10 +741,10 @@ DEGs$DE.gene <- rep(2, nrow(DEGs))
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Read in all genes from miRNA-mRNA interaction networks
 
-fl <- list.files(path=paste0(wd,"/Network_Tables"))
+fl <- list.files(path=paste0(my.wd,"Results/Network_Tables"))
 fl <- fl[grep("NetworkLFC", fl)]
 
-setwd(paste0(my.wd,"/Network_Tables"))
+setwd(paste0(my.wd,"/Results/Network_Tables"))
 
 nws <- lapply(fl, function(x) read.delim(x, header = TRUE))
 nws <- do.call("rbind", nws)
@@ -771,7 +768,8 @@ MyGenes <- merge(DEGs, nwgenes, by ="Gene.Symbol", all.x = TRUE, all.y = TRUE)
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 # Load genes from co-expression modules.
-setwd(my.wd)
+
+setwd(paste0(my.wd,"/Results"))
 load("genes_modules_colors.RData")
 colnames(genes_colors) <- c("Gene.Symbol", "Module")
 
