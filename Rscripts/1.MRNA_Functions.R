@@ -342,3 +342,87 @@ plot_upsetR <- function(list.of.sets, my.intersection, my.name, my.cols, my.plot
 
 
 
+# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# Overlap Genes With Consensus Cancer Genes & highly mutated genes in BC from COSMIC Database
+# Takes as arguments;
+# name = Name of NodeInfo.txt file from miRNA-gene interaction network 
+# Cosmicgenes = Dataset with sensus cancer genes from COSMIC, all or BC specific
+# cancermuts = Dataset with mutations in genes from COSMIC, BC specific and filtered on  (1.) predicted to be pathogenic and (2.) in top 25th quntile of most highly mutated genes.
+# CNV = Dataset with copy number variations (CNVs, loss and gain), from COSMIC.
+# CMgenes = Dataset with cancer genes from CancerMine, lower cut-off 5 citations.
+# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+GenesImpact <- function(name, Cosmicgenes, cancermuts, CNV, CMgenes, network=TRUE) {
+  df <- read.delim(paste0(name,".txt"), header = TRUE)
+  if(network == TRUE) {
+    df <- df[-grep("hsa", df$node),] 
+  }
+  colnames(df)[1] <- "Gene.Symbol" 
+  df <- merge(df, Cosmicgenes, by = "Gene.Symbol", all.x =TRUE, all.y = FALSE)
+  df <- merge(df, cancermuts, by = "Gene.Symbol", all.x =TRUE, all.y = FALSE)
+  df <- merge(df, CNV, by = "Gene.Symbol", all.x =TRUE, all.y = FALSE)
+  df <- merge(df, CMgenes, by = "Gene.Symbol", all.x =TRUE, all.y = FALSE)
+  
+  df$Role.in.Cancer <- ifelse(is.na(df$Role.in.Cancer.x), as.character(df$Role.in.Cancer.y), as.character(df$Role.in.Cancer.x))
+  df$Role.in.Cancer.x <- NULL
+  df$Role.in.Cancer.y <- NULL
+  
+  remove <- which(is.na(df$Name) & is.na(df$Rank))
+  if(length(remove) > 0) {
+    df <- df[-remove,]
+  }
+  
+  df$Rank.Muts <- ifelse(is.na(df$Rank.Muts) & !is.na(df$Rank.CN), 0, df$Rank.Muts)
+  df$Rank.CN <- ifelse(is.na(df$Rank.CN) & !is.na(df$Rank.Muts), 0, df$Rank.CN)
+  df$Rank.avg <- ((df$Rank.Muts)+(df$Rank.CN))/2
+  df$Rank <- rank(df$Rank.avg, na.last = FALSE, ties.method = "max")
+  if(network == TRUE) {
+    df <- df[order(df$Rank, decreasing = TRUE), c(1:4,11,15,20,26:33,35,36)]
+  } else {
+    df <- df[order(df$Rank.avg, decreasing = TRUE), c(1,2,6,10,15,22,26:31)]
+  }
+  
+  df$Role.in.Cancer <- ifelse(is.na(df$Role.in.Cancer), "None", as.character(df$Role.in.Cancer))
+  df$Tumour.Types.Somatic. <- ifelse(is.na(df$Tumour.Types.Somatic.), "None", as.character(df$Tumour.Types.Somatic.))
+  
+  return(df)
+}
+
+
+# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# Function for plotting mutations and CNVs
+# Takes as arguments;
+# df = Output from GenesImpact
+# name = String denoting plot name
+# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+PlotMuts <- function(df, name) {
+  pdf(paste0(name, ".pdf"))
+  df$Gene.Symbol <- factor(df$Gene.Symbol, levels = c(as.character(df$Gene.Symbol)))
+  p <- ggplot(data=df, aes(x=df$Gene.Symbol, y=-df$Rank, width=0.7, fill = as.numeric(df$Rank))) + geom_bar(stat="identity", color="black", size=0.5, alpha = 0.6) + 
+    theme_void() + scale_fill_gradient(high = "#A4BAB7", low = "white")
+  #p <- ggplot(data=df, aes(x=df$Gene.Symbol, y=-df$Rank, width=0.7, fill = as.factor(df$Role.in.Cancer))) + geom_bar(stat="identity", color="black", size=0.5, alpha = 0.6) + 
+  #  theme_void() + scale_fill_manual(values = c("None" = "white", "Dualrole" = "#00635E", "Fusion" = "#EAF0CE" , "Tumorsuppressor" = "#5A7F66", "Oncogene" = "#FF9138"))
+  print(p)
+  dev.off()
+}
+
+
+# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# Function for plotting oncogenes, TSGs, dual role genes, etc. from COSMIC and CancerMine
+# Takes as arguments;
+# df = Output from GenesImpact
+# name = String denoting plot name
+# heigh and width of plot (h,w)
+# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+OncoTSP <- function(df, name, h, w) {
+  pdf(paste0(name, ".pdf"), height = h, width = w)
+  lev <- levels(as.factor(df$value))
+  plot.colors <- as.character(my.colors[my.colors$lev %in% lev,]$my.color)
+  gg <- ggplot(df, aes(x=as.factor(Gene.Symbol), y=as.factor(variable), fill=as.factor(value))) + geom_tile(color="grey20", size=0.2) + coord_equal() + scale_fill_manual(values = plot.colors, aesthetics = "fill") + theme_minimal() + theme(axis.text.x = element_text(angle = 90, hjust = 1))
+  print(gg)
+  dev.off()
+}
+

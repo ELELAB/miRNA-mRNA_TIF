@@ -618,3 +618,304 @@ myplot <- plot_upsetR(intsec.list, names(intsec.list), "Overlap_ConsensusSets", 
 
 
 
+# --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+                                                                                                ### INTEGRATION OF MUTATIONS, CNVs AND GENE ROLE INFORMATION ###
+
+
+# --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# Load All COSMIC Sets and CancerMine Set
+# --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+# Set WD
+my.wd <- "~/Desktop/Thilde/MS_MS_TIF_analysis_2014_2015/TIF_miRNAmRNA/Joint"
+setwd(my.wd)
+
+# --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+# BC specific pathogenic mutations from COSMIC.
+CosmicMuts <-  read.delim("/Databases/Cosmic_Muts_clean.txt", header = TRUE)
+
+# --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+# Cosmic Census Genes
+CosmicCancerGenes <- read.delim("/Databases/Cosmic_cancer_gene_sensus_clean.txt", header = TRUE)
+
+# --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+# Cosmic Copy Number Variations
+CosmicCNVs <- read.delim("/Databases/Cosmic_CNVs_clean.txt", header = TRUE)
+
+# --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# Cancermine oncogenes and tumour suppressors:
+CancerMine <-  read.delim("/Databases/CancerMine_clean.txt", header = TRUE)
+CancerMine <- CancerMine[CancerMine$Citation.Sum >= 5, ]
+
+
+
+
+
+
+# --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# Integrate Database Information with DE genes from Modules; Green, Red and Yellow.
+# --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+setwd(paste0(my.wd, "/MiRSytem/Module_Genes"))
+
+# --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+LuminalTNBCGenes <- as.character(read.delim("ModuleGenes_LuminalTNBC.txt", header = TRUE)$Gene)
+
+LuminalTNBC <- GenesImpact("ModuleGenes_LuminalTNBC.txt", CosmicCancerGenes, CosmicMuts, CosmicCNVs, CancerMine, FALSE)
+LuminalTNBC <- LuminalTNBC[match(LuminalTNBCGenes[-6], LuminalTNBC$Gene.Symbol),]
+
+PlotMuts(LuminalTNBC, "LuminalTNBC")
+
+
+# --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+LuminalBTNBCGenes <- as.character(read.delim("ModuleGenes_LumBTNBC.txt", header = TRUE)$Gene)
+
+LuminalBTNBC <- GenesImpact("ModuleGenes_LumBTNBC", CosmicCancerGenes, CosmicMuts, CosmicCNVs, CancerMine, FALSE)
+LuminalBTNBC <- LuminalBTNBC[match(LuminalBTNBCGenes, LuminalBTNBC$Gene.Symbol),]
+
+PlotMuts(LuminalBTNBC, "LuminalBTNBC")
+
+
+# --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+TILsGenes <- as.character(read.delim("ModuleGenes_TILs.txt", header = TRUE)$Gene)
+
+TILs <- GenesImpact("ModuleGenes_TILs", CosmicCancerGenes, CosmicMuts, CosmicCNVs, CancerMine, FALSE)
+TILs <- TILs[match(TILsGenes, TILs$Gene.Symbol),]
+
+PlotMuts(TILs, "TILs")
+
+
+# --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+GradeTILsGenes <- as.character(read.delim("ModuleGenes_TILsGrade.txt", header = TRUE)$Gene)
+
+GradeTILs <- GenesImpact("ModuleGenes_TILsGrade", CosmicCancerGenes, CosmicMuts, CosmicCNVs, CancerMine, FALSE)
+GradeTILs <- GradeTILs[match(GradeTILsGenes[-c(4:5)], GradeTILs$Gene.Symbol),]
+
+PlotMuts(GradeTILs, "GradeTILs")
+
+
+
+
+# --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# Overlap all genes from networks with information from COSMIC and CancerMine.
+# --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+# Set WD to load network files:
+setwd(paste0(my.wd, "/Tables/Network_Tables"))
+
+
+# Call function "GenesImpact" on each set, using the COSMIC datasets.
+C1C2 <- GenesImpact("C1C2NodeInfo", CosmicCancerGenes, CosmicMuts, CosmicCNVs, CancerMine)
+ERpERn <- GenesImpact("ERpERnNodeInfo", CosmicCancerGenes, CosmicMuts, CosmicCNVs, CancerMine)
+Her2TNBC <- GenesImpact("Her2TNBCNodeInfo", CosmicCancerGenes, CosmicMuts, CosmicCNVs, CancerMine)
+LumATNBC <- GenesImpact("LumATNBCNodeInfo", CosmicCancerGenes, CosmicMuts, CosmicCNVs, CancerMine)
+LumBTNBC <- GenesImpact("LumBTNBCNodeInfo", CosmicCancerGenes, CosmicMuts, CosmicCNVs, CancerMine)
+HGLG <- GenesImpact("HGLGNodeInfo", CosmicCancerGenes, CosmicMuts, CosmicCNVs, CancerMine)
+HTLT <- GenesImpact("HTLTNodeInfo", CosmicCancerGenes, CosmicMuts, CosmicCNVs, CancerMine)
+
+
+
+# --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# Make Figure 9 - Overlap of Oncogenes, TSGs, Dual Role Genes etc. with Subsets of Genes from Modules.
+# --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+# --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# Read in all differentially expressed genes
+
+fl <- list.files(path=paste0(wd,"DE_Tables"))
+fl <- fl[grep(".txt", fl)]
+
+setwd(paste0(my.wd,"/DE_Tables"))
+
+DEGs <- lapply(fl, function(x) read.delim(x, header = TRUE))
+DEGs <- data.frame(unique(sort(do.call("rbind", DEGs)$GeneName)))
+colnames(DEGs) <- "Gene.Symbol"
+
+DEGs$DE.gene <- rep(2, nrow(DEGs))
+
+# --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# Read in all genes from miRNA-mRNA interaction networks
+
+fl <- list.files(path=paste0(wd,"/Network_Tables"))
+fl <- fl[grep("NetworkLFC", fl)]
+
+setwd(paste0(my.wd,"/Network_Tables"))
+
+nws <- lapply(fl, function(x) read.delim(x, header = TRUE))
+nws <- do.call("rbind", nws)
+
+# Extract genes from each node and remove miRNAs
+nwgenes <- unique(sort(c(as.character(nws$node1), as.character(nws$node2))))
+nwgenes <- data.frame(nwgenes[-grep("hsa", nwgenes)])
+colnames(nwgenes) <- "Gene.Symbol"
+
+hasMiR <- as.character(unique(nws[grep("hsa", nws$node1),]$node2))
+nwgenes$From.NW <- rep(2, nrow(nwgenes))
+nwgenes$MiR.Pair <- ifelse(nwgenes$Gene.Symbol %in% hasMiR, 2, 1)
+
+
+
+# --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# Merge DE genes with genes from networks
+MyGenes <- merge(DEGs, nwgenes, by ="Gene.Symbol", all.x = TRUE, all.y = TRUE)
+
+
+# --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+# Load genes from co-expression modules.
+setwd(my.wd)
+load("genes_modules_colors.RData")
+colnames(genes_colors) <- c("Gene.Symbol", "Module")
+
+
+# --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# Extract information from CancerMine
+
+# Is the gene BC-related
+is.BC <- unique(CancerMine[grep("breast", CancerMine$Cancer.Normalized),]$Gene.Symbol)
+CancerMine$Breast.Cancer <- ifelse(CancerMine$Gene.Symbol %in% is.BC, 2, 1)
+
+# Conver Driver to Fusion for easier convergence with COSMIC
+CancerMine$Role.in.Cancer <- ifelse(CancerMine$Role.in.Cancer == "Driver", "Fusion", as.character(CancerMine$Role.in.Cancer))
+
+CancerMine <- CancerMine[, c(1,5:7)]
+CancerMine$In.CancerMine <- rep(2, nrow(CancerMine))
+
+
+# --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# Extract information from COSMIC database
+
+# Is the gene BC-related
+is.BC <- CosmicCancerGenes[unique(sort(c(grep("breast", CosmicCancerGenes$Tumour.Types.Somatic.), grep("breast", CosmicCancerGenes$Tumour.Types.Germline.)))),]$Gene.Symbol
+CosmicCancerGenes$Breast.Cancer <- ifelse(CosmicCancerGenes$Gene.Symbol %in% is.BC, 2, 1)
+
+CosmicCancerGenes$In.Cosmic <- rep(2, nrow(CosmicCancerGenes))
+CosmicCancerGenesSmall <- CosmicCancerGenes[, c(1,6,10,11,15,21,22)]
+
+
+
+# --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# Merge COSMIC and CancerMine
+
+Cosmic.CancerMine <- merge(CosmicCancerGenesSmall, CancerMine, by = "Gene.Symbol", all.x = TRUE, all.y = TRUE)
+
+# Consensus for gene Role.in.Cancer and is Breast.Cancer related
+Cosmic.CancerMine$Role.in.Cancer <- ifelse(is.na(Cosmic.CancerMine$Role.in.Cancer.x), as.character(Cosmic.CancerMine$Role.in.Cancer.y), as.character(Cosmic.CancerMine$Role.in.Cancer.x))
+Cosmic.CancerMine$Breast.Cancer <- ifelse(is.na(Cosmic.CancerMine$Breast.Cancer.x), as.character(Cosmic.CancerMine$Breast.Cancer.y), as.character(Cosmic.CancerMine$Breast.Cancer.x))
+
+
+# Make key to change role to numeric
+KeyNumeric <- data.frame("Role.in.Cancer" = levels(as.factor(Cosmic.CancerMine$Role.in.Cancer)), "Role" = as.numeric(c(4,5,6,3)))
+Cosmic.CancerMine <- merge(Cosmic.CancerMine, KeyNumeric, by ="Role.in.Cancer", all.x = TRUE, all.y =FALSE)
+
+# Small and ordered set
+Cosmic.CancerMine <- Cosmic.CancerMine[, c(2,1,8,9,12:14)]
+Cosmic.CancerMine <- Cosmic.CancerMine[order(Cosmic.CancerMine$Gene.Symbol),]
+
+
+
+# --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# Merge Cosmic.CancerMine with set of DE network genes
+Cosmic.CancerMine <- merge(Cosmic.CancerMine, MyGenes, by = "Gene.Symbol", all.x = TRUE, all.y =TRUE)
+
+# Replace NA with nuemric 1 for plotting
+Cosmic.CancerMine [is.na(Cosmic.CancerMine)] <- 1
+
+# Filter dataset to strict version, either in COSMIC or BC-related or From network or Citation.Sum > 10.
+Cosmic.CancerMine  <- Cosmic.CancerMine[which(Cosmic.CancerMine$In.Cosmic == 2 | Cosmic.CancerMine$Breast.Cancer == 2 | Cosmic.CancerMine$From.NW == 2 | Cosmic.CancerMine$Citation.Sum > 10),]
+
+Cosmic.CancerMine <- Cosmic.CancerMine[, c(1,7,3,5,6,8,9)]
+
+
+# --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# Merge Cosmic.CancerMine with modules
+
+InModules <- merge(Cosmic.CancerMine, genes_colors, by = "Gene.Symbol")
+InModules$Breast.Cancer <- as.numeric(InModules$Breast.Cancer)
+InModules$Role <- as.numeric(InModules$Role)
+
+# --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# Plot
+
+# Melt for ggplot
+InModules <- melt(InModules)
+
+# Split by module
+GeneMod <- split(InModules, f = InModules$Module)
+
+# Module names
+ModName <- names(GeneMod)
+
+# Color for plotting
+my.colors <- data.frame("lev" = c(1:6), "my.color" = c("white", "#C0CAAD", "#3FB5A5", "#7B8BD8", "#CED67A", "#FCB97D"))
+
+# Plot all modules
+for(idx in 1:length(GeneMod)) {
+  my.df <- GeneMod[[idx]]
+  my.name <- ModName[[idx]]
+  OncoTSP(my.df, my.name, 3, 14)
+}
+
+
+
+
+# --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# Fishers Exact Test - Enrichment of Oncogenes and TSGs in Modules.
+# --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+# Get all oncogenes and TSGs
+OncoTSGs <- data.frame("Gene.Symbol" = as.character(Cosmic.CancerMine$Gene.Symbol))
+
+# Merge oncogenes and TSGs with modules
+IsOncoTSG <- merge(OncoTSGs, genes_colors, by = "Gene.Symbol")
+
+# Split by modules
+IsOncoTSG <- split(IsOncoTSG, f = IsOncoTSG$Module)
+
+# Count number of oncogenes and TSGs in each modules
+OT <- data.frame(unlist(lapply(IsOncoTSG, function(x) nrow(x))))
+OT$mod <- rownames(OT)
+colnames(OT) <- c("OncoTGs", "mod")
+rownames(OT) <- NULL
+
+# Count number of genes in each modules
+ModulesSplit <- split(genes_colors, f = genes_colors$Module)
+M <- data.frame(unlist(lapply(ModulesSplit, function(x) nrow(x))))
+M$mod <- rownames(M)
+colnames(M) <- c("Total", "mod")
+rownames(M) <- NULL
+
+
+# Merge into one dataframe
+Fishers.res <- merge(OT, M, by = "mod")
+
+# Set up contingency tables
+Fishers.res$IsNOT <- Fishers.res$Total-Fishers.res$OncoTGs
+Fishers.res$totalwitout <- sum(Fishers.res$Total)-Fishers.res$Total
+Fishers.res$totalwitoutOnco <- sum(Fishers.res$OncoTGs)-Fishers.res$OncoTGs
+
+# Open lists for loop
+oRs <- list()
+ps <- list()
+
+for (idx in 1:nrow(Fishers.res)) {
+  f <- fisher.test(data.frame(c(Fishers.res$OncoTGs[[idx]], Fishers.res$totalwitoutOnco[[idx]]), c(Fishers.res$IsNOT[[idx]], Fishers.res$totalwitout[[idx]])))
+  oRs[[idx]] <- f$estimate
+  ps[[idx]] <- f$p.value
+}
+
+oRs <- as.numeric(unlist(oRs))
+ps <- unlist(ps)
+ps.adj <- p.adjust(ps, method = "fdr")
+
+# Final dataset
+Fishers.res$ps.adj <- ps.adj
+Fishers.res$OR <- oRs
