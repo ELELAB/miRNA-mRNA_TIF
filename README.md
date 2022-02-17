@@ -1,16 +1,18 @@
+Computational Biology Laboratory, Danish Cancer Society Research Center, Strandboulevarden 49, 2100, Copenhagen, Denmark.
+
 # miRNA-mRNA-TIF
 
 Repository associated with the publication:
 
-Secreted Breast Tumor Interstitial Fluid MicroRNAs and Their Target Genes are Associated with Triple Negative Breast Cancer, Tumor Grade and Immune Infiltration.
-
+Secreted breast tumor interstitial fluid microRNAs and their target genes are associated with triple-negative breast cancer, tumor grade, and immune infiltration
 Thilde Terkelsen, Francesco Russo, Pavel Gromov, Vilde Drageset Haakensen, Søren Brunak, Irina Gromova, Anders Krogh and Elena Papaleo*
+Breast Cancer Res. 2020 Jun 30;22(1):73. doi: 10.1186/s13058-020-01295-6.
 
 ###
 
 corresponding author: elenap@cancer.dk
 
-contacts for scripts: thilde@cancer.dk, elenap@cancer.dk
+contacts for scripts: elenap@cancer.dk
 
 
 This repository contains tumour interstitial fluid miRNA expression data and paired solid tumour tissue mRNA expression data from patients with breast cancer. The repository was made with intent of openly sharing both data and R-scripts used for analysis in relation to the publication.
