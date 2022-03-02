@@ -10,9 +10,9 @@ Breast Cancer Res. 2020 Jun 30;22(1):73. doi: 10.1186/s13058-020-01295-6.
 
 ###
 
-corresponding author: elenap@cancer.dk
+corresponding author: elenap-at-cancer.dk
 
-contacts for scripts: elenap@cancer.dk
+contacts for scripts: elenap-at-cancer.dk
 
 
 This repository contains tumour interstitial fluid miRNA expression data and paired solid tumour tissue mRNA expression data from patients with breast cancer. The repository was made with intent of openly sharing both data and R-scripts used for analysis in relation to the publication.
